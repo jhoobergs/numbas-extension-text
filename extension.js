@@ -1,4 +1,4 @@
-Numbas.addExtension("text", [], function (extension) {
+Numbas.addExtension("text", ["jme", "jme-display"], function (extension) {
   let scope = extension.scope;
 
   // write your extension code here
@@ -15,10 +15,9 @@ Numbas.addExtension("text", [], function (extension) {
 
   let TTextArea = function (data) {
     let a = this;
-    this.element = data;
-    this.nb_rows = null;
-    this.nb_columns = null;
-    this.value = data;
+    this.element = data.element;
+    this.nb_rows = data.nb_rows;
+    this.nb_columns = data.nb_columns;
     /*this.promise = data.promise; // ??
     // TODO
     this.promise.then(function ([el, student_worker, correct_result]) {
@@ -38,13 +37,13 @@ Numbas.addExtension("text", [], function (extension) {
       return "\\text{Textarea}"; // TODO: spacing
     },
     jme: function (v) {
-      let data = v.tok.value;
-      let f = new jme.types.TFunc("textarea");
+      let f = new jme.types.TFunc("resume_textarea");
       let tree = {
         tok: f,
         args: [
-          { tok: jme.wrapValue(data.rows) },
-          { tok: jme.wrapValue(data.columns) },
+          { tok: jme.wrapValue(v.tok.nb_rows) },
+          { tok: jme.wrapValue(v.tok.nb_columns) },
+          { tok: jme.wrapValue(v.tok.element.value) },
         ],
       };
 
@@ -87,15 +86,15 @@ Numbas.addExtension("text", [], function (extension) {
    *
    * @returns {Promise} - resolves to the textarea
    */
-  let showEditor = function (nb_rows, nb_columns) {
+  let showTextArea = function (nb_rows, nb_columns) {
     //return new Promise(function (resolve, reject) {
-    let element = document.createElement("div");
+    //let element = document.createElement("div");
     let textarea = document.createElement("textarea");
     textarea.setAttribute("style", "display:block;min-width:600;");
     textarea.setAttribute("rows", nb_rows);
-    textarea.setAttribute("columns", nb_columns);
-    element.appendChild(textarea);
-    return element;
+    textarea.setAttribute("cols", nb_columns);
+    //element.appendChild(textarea);
+    return textarea;
     // resolve(element);
     //});
   };
@@ -114,7 +113,8 @@ Numbas.addExtension("text", [], function (extension) {
 
     this.nb_rows = nb_rows;
     this.nb_columns = nb_columns;
-    return showEditor(nb_rows, nb_columns);
+    this.element = showTextArea(nb_rows, nb_columns);
+    return this;
 
     /*promise = promise
       .then(function ([correct_result, student_worker]) {
@@ -170,8 +170,8 @@ Numbas.addExtension("text", [], function (extension) {
   };
 
   let sig_textarea = sig.sequence(
-    sig.type("integer"),
-    sig.type("integer")
+    sig.type("number"),
+    sig.type("number")
     //sig.optional(sig.type("boolean"))
   );
 
@@ -193,6 +193,56 @@ Numbas.addExtension("text", [], function (extension) {
             show_expected_columns = args[2].value;
           }*/
           return new TTextArea(createTextArea(nb_rows, nb_columns));
+        },
+      },
+      { unwrapValues: true }
+    )
+  );
+  let sig_resume_textarea = sig.sequence(
+    sig.type("number"),
+    sig.type("number"),
+    sig.type("string")
+    //sig.optional(sig.type("boolean"))
+  );
+
+  // Used to set the content on resume
+  extension.scope.addFunction(
+    new funcObj(
+      "resume_textarea",
+      [sig_resume_textarea],
+      TTextArea,
+      null, // ??
+      {
+        evaluate: function (args, scope) {
+          let match = sig_resume_textarea(args);
+          let nb_rows = args[0].value;
+          let nb_columns = args[1].value;
+          let content = args[2].value;
+
+          /*let show_expected_columns;
+          if (match[2].missing) {
+            show_expected_columns = false;
+          } else {
+            show_expected_columns = args[2].value;
+          }*/
+          let text_area = createTextArea(nb_rows, nb_columns);
+          text_area.element.value = content;
+          return new TTextArea(text_area);
+        },
+      }
+    )
+  );
+  extension.scope.addFunction(
+    new funcObj(
+      "content",
+      [TTextArea],
+      TString,
+      null, // ??
+      {
+        evaluate: function (args, scope) {
+          let text_area = args[0].value;
+
+          return new TString(text_area.element.value);
         },
       },
       { unwrapValues: true }
