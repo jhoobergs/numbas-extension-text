@@ -43,7 +43,7 @@ Numbas.addExtension("text", [], function (extension) {
       let tree = {
         tok: f,
         args: [
-          { tok: jme.wrapValue(data.rows) ,
+          { tok: jme.wrapValue(data.rows) },
           { tok: jme.wrapValue(data.columns) },
         ],
       };
@@ -83,20 +83,20 @@ Numbas.addExtension("text", [], function (extension) {
     },
   });
 
-  /** Inject a textarea in the document. 
+  /** Inject a textarea in the document.
    *
-   * @returns {Promise} - resolves to the textarea 
+   * @returns {Promise} - resolves to the textarea
    */
   let showEditor = function (nb_rows, nb_columns) {
     //return new Promise(function (resolve, reject) {
-      let element = document.createElement("div");
-      let textarea = document.createElement("textarea");
-      textarea.setAttribute("style", "display:block;min-width:600;");
-      textarea.setAttribute("rows", nb_rows);
-      textarea.setAttribute("columns", nb_columns);
-      element.appendChild(textarea);
-      return element
-     // resolve(element);
+    let element = document.createElement("div");
+    let textarea = document.createElement("textarea");
+    textarea.setAttribute("style", "display:block;min-width:600;");
+    textarea.setAttribute("rows", nb_rows);
+    textarea.setAttribute("columns", nb_columns);
+    element.appendChild(textarea);
+    return element;
+    // resolve(element);
     //});
   };
 
@@ -144,7 +144,7 @@ Numbas.addExtension("text", [], function (extension) {
     }
 
     */
-/*
+    /*
     promise
       .then(function (el) {
         element.innerHTML = "";
@@ -165,15 +165,13 @@ Numbas.addExtension("text", [], function (extension) {
    * @param {Number} nb_columns - The number of columns for the textarea
    * @returns {Promise} - Resolves to `element`, where `element` is a textarea element.
    */
-  createSQLEditor = extension.createSQLEditor = function (
-nb_rows, nb_columns
-  ) {
+  createTextArea = extension.createTextArea = function (nb_rows, nb_columns) {
     return new TextArea(nb_rows, nb_columns);
   };
 
   let sig_textarea = sig.sequence(
     sig.type("integer"),
-    sig.type("integer"),
+    sig.type("integer")
     //sig.optional(sig.type("boolean"))
   );
 
@@ -194,9 +192,7 @@ nb_rows, nb_columns
           } else {
             show_expected_columns = args[2].value;
           }*/
-          return new TTextArea(
-            createTextArea(nb_rows, nb_columns)
-          );
+          return new TTextArea(createTextArea(nb_rows, nb_columns));
         },
       },
       { unwrapValues: true }
